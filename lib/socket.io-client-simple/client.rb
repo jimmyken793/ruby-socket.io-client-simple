@@ -33,7 +33,11 @@ module SocketIO
                   end
                 end
                 if @websocket.open? and Time.now.to_i - @last_pong_at > @ping_timeout/1000
-                  @websocket.close
+                  begin
+                    @websocket.close
+                  rescue Errno::ETIMEDOUT => err
+                    __emit :error, err
+                  end
                   @state = :disconnect
                   __emit :disconnect
                   reconnect
